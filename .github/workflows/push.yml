@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout latest code
-        uses: actions/checkout@4
+        uses: actions/checkout@v4
 
       - name: Run echo for logs
         run: |
