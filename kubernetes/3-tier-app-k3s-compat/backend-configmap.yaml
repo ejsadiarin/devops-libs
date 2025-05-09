@@ -1,0 +1,8 @@
+---
+# ConfigMap to expose configuration related to backend application
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-conf
+data:
+  server-uri: http://api-todo.ejsadiarin.com

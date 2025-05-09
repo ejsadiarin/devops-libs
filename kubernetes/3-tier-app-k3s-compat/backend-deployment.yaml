@@ -1,0 +1,101 @@
+---
+# Define 'Service' to expose backend application deployment
+apiVersion: v1
+kind: Service
+metadata:
+  name: to-do-app-backend
+spec:
+  selector: # backend application pod lables should match these
+    app: to-do-app-backend
+    tier: backend
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+  type: ClusterIP
+---
+# Configure 'Deployment' of backend application
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: to-do-app-backend
+  labels:
+    app: to-do-app-backend
+    tier: backend
+spec:
+  replicas: 2 # Number of replicas of back-end application to be deployed
+  selector:
+    matchLabels: # backend application pod labels should match these
+      app: to-do-app-backend
+      tier: backend
+  template:
+    metadata:
+      labels: # Must macth 'Service' and 'Deployment' labels
+        app: to-do-app-backend
+        tier: backend
+    spec:
+      containers:
+        - name: to-do-app-backend
+          image: kubernautslabs/to-do-app-backend # docker image of backend application
+          env: # Setting Enviornmental Variables
+            - name: DB_HOST # Setting Database host address from configMap
+              valueFrom:
+                configMapKeyRef:
+                  name: db-conf # name of configMap
+                  key: host
+            - name: DB_NAME # Setting Database name from configMap
+              valueFrom:
+                configMapKeyRef:
+                  name: db-conf
+                  key: name
+            - name: DB_USERNAME # Setting Database username from Secret
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials # Secret Name
+                  key: username
+            - name: DB_PASSWORD # Setting Database password from Secret
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key: password
+          ports:
+            - containerPort: 8080
+              # readinessProbe:
+              #   httpGet:
+              #     path: /health
+              #     port: 8080
+              #   initialDelaySeconds: 5
+              #   periodSeconds: 10
+              # livenessProbe:
+              #   httpGet:
+              #     path: /health
+              #     port: 8080
+              #   initialDelaySeconds: 15
+              #   periodSeconds: 20
+---
+# https://kubernetes.io/docs/concepts/services-networking/ingress/
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: to-do-app-backend-ingress
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+    # Add CORS headers
+    traefik.ingress.kubernetes.io/headers.accesscontrolallowmethods: "GET,OPTIONS,PUT,POST,DELETE"
+    traefik.ingress.kubernetes.io/headers.accesscontrolalloworiginlist: "*"
+    traefik.ingress.kubernetes.io/headers.accesscontrolallowheaders: "authorization,content-type"
+    traefik.ingress.kubernetes.io/headers.accesscontrolmaxage: "100"
+    traefik.ingress.kubernetes.io/headers.accesscontrolallowcredentials: "true"
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: api-todo.ejsadiarin.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: to-do-app-backend
+                port:
+                  number: 80
