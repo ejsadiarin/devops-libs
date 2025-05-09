@@ -1,0 +1,13 @@
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb_boardgame
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INIT_DB=boardgame
+    volumes:
+      - mongodb_data_boardgame:/data/db
+
+volumes:
+  mongodb_data_boardgame:

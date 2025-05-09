@@ -1,0 +1,39 @@
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: mysql-backup
+spec:
+  schedule: "0 2 * * *" # 2:00 AM everyday
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: mysql-backup
+              image: mysql:8.0
+              command:
+                - /bin/bash
+                - -c
+                - |
+                  mysqldump -h mysql.default.svc.cluster.local -u root -proot --all-databases > /backup/mysql_$(date +%Y%m%d).sql
+              volumeMounts:
+                - name: backup-volume
+                  mountPath: /backup
+          restartPolicy: OnFailure
+          volumes:
+            - name: backup-volume
+              persistentVolumeClaim:
+                claimName: mysql-backup-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-backup-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn # can use local-path or custom local-path-retain (has reclaimPolicy: Retain)
+  resources:
+    requests:
+      storage: 10Gi

@@ -1,0 +1,15 @@
+---
+services:
+  db:
+    image: mysql
+    container_name: headless-mysql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: pass
+      MYSQL_DATABASE: leap25
+    volumes:
+      - headless_mysql_data:/var/lib/mysql
+
+volumes:
+  headless_mysql_data:

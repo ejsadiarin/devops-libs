@@ -1,0 +1,25 @@
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: local-path-retain
+provisioner: rancher.io/local-path
+reclaimPolicy: Retain
+volumeBindingMode: WaitForFirstConsumer
+
+# NOTE: USAGE:
+# -- example mysql-pvc.yaml:
+#
+# apiVersion: v1
+# kind: PersistentVolumeClaim
+# metadata:
+#   labels:
+#     app: mysql-data
+#   name: mysql-data
+# spec:
+#   accessModes:
+#     - ReadWriteOnce
+#   resources:
+#     requests:
+#       storage: 1Gi
+#   storageClassName: local-path-retain
